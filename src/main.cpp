@@ -15,6 +15,10 @@
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <MQTT.h>
+
+// https://dashio.io/guide-arduino-esp32/
+// #include <PubSubClient.h>    // BLE, MQTT, ...
 
 // Wi-Fi credentials - Set #if to zero when use local defines in this source
 #if 1
@@ -73,7 +77,14 @@ void setup_uart2( HardwareSerial &Serial2, int bitrate, int RxBufferSize, int Tx
   Serial.println("Serial 2 started at 19200 baud rate");
 }
 
-void udp_send( WiFiUDP &udp, const uint8_t *data, int count )
+
+void setup_udp( WiFiUDP &udp, const int udpPort )
+{
+  udp.begin(udpPort);
+}
+
+
+void udp_send( WiFiUDP &udp, const char *udpAddress, int udpPort, const uint8_t *data, int count )
 {
     udp.beginPacket(udpAddress, udpPort);
     udp.write( data, count );
@@ -91,7 +102,7 @@ void setup()
   setup_wifi( ssid, password );
 
   // Start UDP
-  udp.begin(udpPort);
+  setup_udp( udp, udpPort );
 
   // Start Serial 2 with the defined RX and TX pins and a baud rate of 19200
   setup_uart2( SerialVE, VE_BAUD, BUFSIZE, BUFSIZE );
@@ -168,10 +179,7 @@ void loop_SmartShunt( void )
 
   if ( time_us && ((time_now - time_us) > MSG_TIMEOUT_us) )
   {
-    // Send UDP packet
-    udp.beginPacket(udpAddress, udpPort);
-    udp.write( (const uint8_t*) rxbuf.data, rxbuf.count );
-    udp.endPacket();
+    udp_send( udp, udpAddress, udpPort, (const uint8_t*) rxbuf.data, rxbuf.count );
 
     rxbuf.count = 0;
     time_us     = 0;
