@@ -15,10 +15,12 @@
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
-#include <MQTT.h>
+//#include <MQTT.h>
 
 // https://dashio.io/guide-arduino-esp32/
 // #include <PubSubClient.h>    // BLE, MQTT, ...
+
+#include "esp32lib.hpp"
 
 // Wi-Fi credentials - Set #if to zero when use local defines in this source
 #if 1
@@ -35,9 +37,10 @@ const int   udpPort    =  8080;            // Receiver Port
 #define VE_BAUD  19200  // Victron Energy Smart Shunt
 #define BUFSIZE  256
 
-// Create an instance of the HardwareSerial class for Serial 2
+// Create an instance of the HardwareSerial class for Serial 2 and UDP
 HardwareSerial  SerialVE(2);
 WiFiUDP         udp;
+//MQTTClient      client;
 
 typedef struct
 {
@@ -48,47 +51,42 @@ typedef struct
 void loop_UDP_example( void );
 void loop_SmartShunt( void );
 
+//--------------------------------------------------------------------------------------
 
-void setup_wifi( const char *ssid, const char *password )
+#include <PubSubClient.h>
+
+// Replace with your MQTT broker details
+const char* mqtt_server = "192.168.1.184";  // "broker.hivemq.com";
+
+WiFiClient   espClient;
+PubSubClient mqttClient( espClient );
+
+void mqtt_callback(char* topic, byte* message, unsigned int length)
 {
-  Serial.println("Connecting to Wi-Fi...");
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  Serial.print("Message arrived on topic: ");
+  Serial.println(topic);
+  String msg;
+  for (int i = 0; i < length; i++) {
+    msg += (char)message[i];
   }
-  Serial.println("\nConnected to Wi-Fi!");
-  Serial.print("ESP32 IP Address: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("Message: " + msg);
 }
 
-
-// Start Serial 2 with the defined RX and TX pins and a baud rate 
-void setup_uart2( HardwareSerial &Serial2, int bitrate, int RxBufferSize, int TxBufferSize )
+void mqtt_reconnect()
 {
-  // Define the RX and TX pins for Serial 2
-  #define RXD2     16
-  #define TXD2     17
-
-  Serial2.setRxBufferSize( RxBufferSize );
-  Serial2.setTxBufferSize( TxBufferSize );
-  Serial2.begin( bitrate, SERIAL_8N1, RXD2, TXD2 );
-  //
-  Serial.println("Serial 2 started at 19200 baud rate");
-}
-
-
-void setup_udp( WiFiUDP &udp, const int udpPort )
-{
-  udp.begin(udpPort);
-}
-
-
-void udp_send( WiFiUDP &udp, const char *udpAddress, int udpPort, const uint8_t *data, int count )
-{
-    udp.beginPacket(udpAddress, udpPort);
-    udp.write( data, count );
-    udp.endPacket();
+  while ( !mqttClient.connected() )
+  {
+    Serial.print("Attempting MQTT connection...");
+    if (mqttClient.connect("ESP32Client")) {
+      Serial.println("connected");
+      mqttClient.subscribe("test/topic");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      delay(5000);
+    }
+  }
 }
 
 //--------------------------------------------------------------------------------------
@@ -106,13 +104,31 @@ void setup()
 
   // Start Serial 2 with the defined RX and TX pins and a baud rate of 19200
   setup_uart2( SerialVE, VE_BAUD, BUFSIZE, BUFSIZE );
+
+  //client.setServer(udpAddress, WiFi);
+  mqttClient.setServer( mqtt_server, 1883 );
+  mqttClient.setCallback( mqtt_callback );
 }
 
 
 void loop() 
 {
-//loop_UDP_example();
+  //loop_UDP_example();
   loop_SmartShunt();
+
+  if (!mqttClient.connected()) {
+    mqtt_reconnect();
+  }
+  mqttClient.loop();
+
+  // Publish a message every 5 seconds
+  static unsigned long lastMsg = millis();
+  if (millis() - lastMsg > 5000) {
+    lastMsg = millis();
+    String message = "Hello from ESP32!";
+    mqttClient.publish("test/topic", message.c_str());
+    Serial.println("Message published: " + message);
+  }
 }
 
 //------------------------------------------------------------------
