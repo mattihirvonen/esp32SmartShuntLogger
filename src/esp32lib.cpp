@@ -1,6 +1,7 @@
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <PubSubClient.h>    // MQTT
 
 // ---------------------------------------------------------------------------------------
 // Connect to the WiFi router
@@ -55,6 +56,33 @@ void udp_send( WiFiUDP &udp, const char *udpAddress, int udpPort, const uint8_t 
 
 
 // ---------------------------------------------------------------------------------------
+// Example: Create an instance of "mqttClient"" 
+
+#if 0
+const char*   mqtt_server = "192.168.1.184";  // "broker.hivemq.com";
+//
+WiFiClient    espClient;
+PubSubClient  mqttClient( espClient );
+
+void mqtt_callback(char* topic, byte* message, unsigned int length)
+{
+  Serial.print("Message arrived on topic: ");
+  Serial.println(topic);
+  String msg;
+  for (int i = 0; i < length; i++) {
+    msg += (char)message[i];
+  }
+  Serial.println("Message: " + msg);
+}
+#endif
+
+void setup_mqtt( PubSubClient  &mqttClient, const char *mqtt_server, int port )
+{
+  mqttClient.setServer( mqtt_server, port );
+//mqttClient.setCallback( mqtt_callback );
+}
+
+// ---------------------------------------------------------------------------------------
 // Example: Create an instance of MQTTClient 
 // MQTTClient client;
 
@@ -75,3 +103,20 @@ client.unsubscribe("/hello");
 client.publish("/hello", "world");
 
 */
+
+void mqtt_reconnect( PubSubClient &mqttClient )
+{
+  while ( !mqttClient.connected() )
+  {
+    Serial.print("Attempting MQTT connection...");
+    if (mqttClient.connect("ESP32Client")) {
+      Serial.println("connected");
+      mqttClient.subscribe("test/topic");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      delay(5000);
+    }
+  }
+}

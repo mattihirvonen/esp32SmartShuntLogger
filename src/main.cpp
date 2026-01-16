@@ -15,10 +15,11 @@
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <PubSubClient.h>     // MQTT
 //#include <MQTT.h>
 
+// BLE, MQTT, ...
 // https://dashio.io/guide-arduino-esp32/
-// #include <PubSubClient.h>    // BLE, MQTT, ...
 
 #include "esp32lib.hpp"
 
@@ -52,11 +53,8 @@ void loop_UDP_example( void );
 void loop_SmartShunt( void );
 
 //--------------------------------------------------------------------------------------
-
-#include <PubSubClient.h>
-
 // Replace with your MQTT broker details
-const char* mqtt_server = "192.168.1.184";  // "broker.hivemq.com";
+const char*  mqtt_server = "192.168.1.184";  // "broker.hivemq.com";
 
 WiFiClient   espClient;
 PubSubClient mqttClient( espClient );
@@ -70,23 +68,6 @@ void mqtt_callback(char* topic, byte* message, unsigned int length)
     msg += (char)message[i];
   }
   Serial.println("Message: " + msg);
-}
-
-void mqtt_reconnect()
-{
-  while ( !mqttClient.connected() )
-  {
-    Serial.print("Attempting MQTT connection...");
-    if (mqttClient.connect("ESP32Client")) {
-      Serial.println("connected");
-      mqttClient.subscribe("test/topic");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
-    }
-  }
 }
 
 //--------------------------------------------------------------------------------------
@@ -106,8 +87,9 @@ void setup()
   setup_uart2( SerialVE, VE_BAUD, BUFSIZE, BUFSIZE );
 
   //client.setServer(udpAddress, WiFi);
-  mqttClient.setServer( mqtt_server, 1883 );
+  setup_mqtt( mqttClient, mqtt_server, 1883 );
   mqttClient.setCallback( mqtt_callback );
+
 }
 
 
@@ -117,7 +99,7 @@ void loop()
   loop_SmartShunt();
 
   if (!mqttClient.connected()) {
-    mqtt_reconnect();
+    mqtt_reconnect( mqttClient );
   }
   mqttClient.loop();
 
@@ -126,7 +108,7 @@ void loop()
   if (millis() - lastMsg > 5000) {
     lastMsg = millis();
     String message = "Hello from ESP32!";
-    mqttClient.publish("test/topic", message.c_str());
+    mqttClient.publish("test/topic", message.c_str(), message.length()+1);
     Serial.println("Message published: " + message);
   }
 }
@@ -196,6 +178,8 @@ void loop_SmartShunt( void )
   if ( time_us && ((time_now - time_us) > MSG_TIMEOUT_us) )
   {
     udp_send( udp, udpAddress, udpPort, (const uint8_t*) rxbuf.data, rxbuf.count );
+
+    mqttClient.publish( "smartshunt", (const uint8_t*) rxbuf.data, rxbuf.count );
 
     rxbuf.count = 0;
     time_us     = 0;
