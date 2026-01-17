@@ -11,6 +11,15 @@ TARGET := 192.168.1.184
 FOLDER := /root
 
 #-----------------------------------------------------------
+# Code::Blocks dependencies trick
+
+Debug:   all
+Release: all
+
+cleanDebug:   clean
+cleanRelease: cleanDebug
+
+#-----------------------------------------------------------
 
 all: scp  # mqttLogger
 
