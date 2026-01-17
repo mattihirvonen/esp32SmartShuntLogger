@@ -7,16 +7,17 @@ using serial port link. Data will sent to (linux) server applications
   - MQTT data packets  (2nd development phase)
 
 Switch to use MQTT allow multiple client applications read and process
-same measurement data
+same measurement data.
 
 
-Project is implemented
+Development Environments
+------------------------
   - ESP32 is PlatformIO project (Windows development environment)
   - linux is native development (build using desktop linux virtual machine using
     shared folder with windows host machine). Build result application(s) will
     deploy into linux server's LXD container running "mosquitto" MQTT broker.
-    LXD container run in QNAP NAS Virtualization station. Container have shared
-    folder with host NAS to save measured log data.
+    LXD container run in QNAP NAS Virtualization Station. Container have shared
+    folder with host NAS to save measured log data for Windows and Linux machines.
 
 
 References:
