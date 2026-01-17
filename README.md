@@ -24,6 +24,7 @@ same measurement data.
 - *Code::Blocks* is handy development IDE for linux C/C++ applications 
 
 ### References:
+- https://www.victronenergy.com/battery-monitors/smart-battery-shunt
 - https://www.victronenergy.com/media/pg/SmartShunt/en/interfacing.html
 - https://www.victronenergy.com/live/vedirect_protocol:faq
 - https://www.tarthorst.net/victron-ve-direct/#:~:text=VE.Direct%20uses%204-pin%20JST%20connectors.%20The%20device%20has,will%20need%20the%204-pin%20JST%20PH%202.0%20type.

@@ -32,12 +32,11 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename=".gitignore" />
 		<Unit filename="Makefile" />
 		<Unit filename="README_linux.md" />
 		<Unit filename="gnuplot.cmd" />
-		<Unit filename="mqttLogger.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="mqttLogger.cpp" />
 		<Unit filename="plot_columns.gnu" />
 		<Unit filename="udpLogger.c">
 			<Option compilerVar="CC" />
