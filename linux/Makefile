@@ -2,12 +2,13 @@
 # Replace following variable values with real values !!!
 # Use notation ":=" allow give variable values from command line like
 #
-#   make  USER=me  PASSWD=secretword
+#   make  USER=matti  PASSWD=secretword
 #
 APP    := mqttLogger
 USER   := root
 PASSWD := rootxx
 TARGET := 192.168.1.184
+FOLDER := /root
 
 #-----------------------------------------------------------
 
@@ -29,4 +30,4 @@ clean:
 
 
 scp: mqttLogger
-	sshpass -p $(PASSWD)  scp  mqttLogger  $(USER)@$(TARGET):/root/logger
+	sshpass -p $(PASSWD)  scp  mqttLogger  $(USER)@$(TARGET):$(FOLDER)/logger
