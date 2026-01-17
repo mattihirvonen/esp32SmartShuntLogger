@@ -10,7 +10,7 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+//#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <mosquitto.h>
 #include <pthread.h>
+#include <cstring>
 
 #define UNUSED  __attribute__((unused))
 
@@ -63,6 +64,7 @@ typedef struct
 */
 
 conf_t conf = {
+      .start_time  = 0,
       .mqtt_broker = MQTT_BROKER,
       .udp_port    = UDP_PORT,
       .Naverage    = 1,
@@ -167,13 +169,13 @@ char calcChecksum( const char *buffer, const int count )
 
 char *findTopic( const char *buffer, const char *topic )
 {
-    char  find[16], *item = NULL;
+    char  find[16], *item;
 
     strcpy( find, "\n" );     // Add leading  '\n' character
     strcat( find, topic );
     strcat( find, "\t" );     // Add training '\t' character
 
-    item = strstr( buffer, find );
+    item = const_cast<char*>( strstr(buffer, find) );
     if ( item ) {
          item += 1;  // Skip leading '\n' character
     }
@@ -347,11 +349,11 @@ void on_connect(UNUSED struct mosquitto *mosq, UNUSED void *obj, int rc)
 
 void on_message(UNUSED struct mosquitto *mosq, UNUSED void *obj, const struct mosquitto_message *msg)
 {
-    char *payload = msg->payload;
+    char *payload = reinterpret_cast<char*>( msg->payload );
 
     payload[ msg->payloadlen ] = 0;
     #if 1
-    handleShuntMessage( msg->payload, msg->payloadlen );
+    handleShuntMessage( reinterpret_cast<char*>( msg->payload ), msg->payloadlen );
     #else
     printf("Topic: %s | Message(%d bytes): %s\n", msg->topic, msg->payloadlen, (char *)msg->payload);
     #endif // 1
@@ -362,7 +364,7 @@ void* thread_mqtt( void* arg )
 {
     struct mosquitto *mosq;
 
-    printf("# MQTT client connect to %s\n", (char*) arg);
+    printf("# MQTT client connect to %s\n", reinterpret_cast<char*>( arg ) );
 
     mosquitto_lib_init();
     mosq = mosquitto_new(NULL, true, NULL);

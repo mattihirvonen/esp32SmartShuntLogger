@@ -26,12 +26,12 @@ all: scp  # mqttLogger
 CFLAGS = -Wall -Wextra
 
 
-udpLogger:  udpLogger.c   Makefile
-	gcc     udpLogger.c   $(CFLAGS) -o udpLogger
+udpLogger:  udpLogger.c
+	gcc     udpLogger.c  $(CFLAGS) -o udpLogger
 
 
-mqttLogger: mqttLogger.c  Makefile
-	gcc     mqttLogger.c  $(CFLAGS) -o mqttLogger -lmosquitto
+mqttLogger: mqttLogger.cpp  Makefile
+	g++     mqttLogger.cpp  $(CFLAGS) -o mqttLogger -lmosquitto
 
 
 clean:
