@@ -10,12 +10,18 @@ Switch to use MQTT allow multiple client applications read and process parallel
 same measurement data.
 
 ### Development Environments
-- ESP32 is PlatformIO project (Windows development environment)
-- linux is native development (build using desktop linux virtual machine using
-  shared folder with windows host machine). Build result application(s) will
-  deploy into linux server's LXD container running "mosquitto" MQTT broker.
+- "*platformio.ini*" is PlatformIO project configuration file
+- "*src*" folder contain ESP32 PlatformIO project other source files
+  (Windows development environment)
+- "*linux*" is native development (build using desktop linux virtual machine which
+  have shared folder with windows host machine). Build result application(s) will
+  deploy into linux server's LXD container running also "mosquitto" MQTT broker.
   LXD container run in QNAP NAS Virtualization Station. Container have shared
   folder with host NAS to save measured log data for Windows and Linux machines.
+- *PlatformIO* is Visual Studio Code extension for ESP32 development
+  (application is easy convert to simpple Arduino IDE application,
+  but PlatformIO is   more "professional" development environment)
+- *Code::Blocks* is handy development IDE for linux C/C++ applications 
 
 ### References:
 - https://www.victronenergy.com/media/pg/SmartShunt/en/interfacing.html
