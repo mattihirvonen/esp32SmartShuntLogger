@@ -72,6 +72,13 @@ void mqtt_callback(char* topic, byte* message, unsigned int length)
 
 //--------------------------------------------------------------------------------------
 
+void setup_timer( void );
+void setup_task0( void );
+void publish_histogram( PubSubClient &mqttClient );
+
+extern volatile int  datatable[];
+
+
 void setup()
 {
   // Serial Monitor
@@ -90,6 +97,8 @@ void setup()
   setup_mqtt( mqttClient, mqtt_server, 1883 );
   mqttClient.setCallback( mqtt_callback );
 
+  setup_timer();
+//setup_task0();
 }
 
 
@@ -110,6 +119,8 @@ void loop()
     String message = "Hello from ESP32!";
     mqttClient.publish("test/topic", message.c_str(), message.length()+1);
     Serial.println("Message published: " + message);
+
+    publish_histogram( mqttClient );
   }
 }
 
