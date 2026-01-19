@@ -5,7 +5,7 @@
 #include <PubSubClient.h>     // MQTT
 
 #define LED_PIN    2
-#define PEROIO_us  99
+#define PEROIO_us  49         // Abs min 33 us
 
 #define OFFSET 5
 #define RANGE  30
@@ -16,6 +16,7 @@ static int time_stamp;
 
 volatile int  datatable[1002];
 
+// https://esp32.co.uk/testing-esp32-hardware-timers-with-interrupts-beginner-friendly-guide/
 
 void IRAM_ATTR onTimer()
 {
@@ -32,7 +33,7 @@ void IRAM_ATTR onTimer()
     }
     else
     {
-        int  time_diff = /* abs */ ((time_now - time_stamp) - PEROIO_us);
+        int  time_diff = (time_now - time_stamp) - PEROIO_us;
 
         if ( time_diff <= -OFFSET )  {
             datatable[0] += 1;
@@ -52,9 +53,8 @@ void setup_timer()
 {
     timer = timerBegin(0, 80, true);               // Timer 0, prescaler 80 (1 µs tick)
     timerAttachInterrupt(timer, &onTimer, true);
-//  timerAlarmWrite(timer,   1000000, true);       // Trigger every 1 second
     timerAlarmWrite(timer, PEROIO_us, true);       // Trigger every PEROIO_us
-    timerAlarmEnable(timer);
+    timerAlarmEnable(timer);                       // Start timer
 
     pinMode(LED_PIN, OUTPUT);
 }
