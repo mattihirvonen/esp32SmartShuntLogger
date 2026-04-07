@@ -16,7 +16,8 @@ static int time_stamp;
 
 volatile int  datatable[1002];
 
-// https://esp32.co.uk/testing-esp32-hardware-timers-with-interrupts-beginner-friendly-guide/
+// old: https://esp32.co.uk/testing-esp32-hardware-timers-with-interrupts-beginner-friendly-guide/
+// new: https://docs.espressif.com/projects/arduino-esp32/en/latest/api/timer.html
 
 void IRAM_ATTR onTimer()
 {
@@ -51,11 +52,18 @@ void IRAM_ATTR onTimer()
 
 void setup_timer()
 {
+    #if 0 // Old broken code
     timer = timerBegin(0, 80, true);               // Timer 0, prescaler 80 (1 µs tick)
     timerAttachInterrupt(timer, &onTimer, true);
     timerAlarmWrite(timer, PEROIO_us, true);       // Trigger every PEROIO_us
     timerAlarmEnable(timer);                       // Start timer
 
+    #else // FIxed for new esp32 library headers
+    timer = timerBegin(1000000);                   // Timer 1 µs tick)
+    timerAttachInterrupt(timer, &onTimer);
+    timerAlarm(timer, PEROIO_us, true, 0);
+
+    #endif
     pinMode(LED_PIN, OUTPUT);
 }
 
